@@ -37,25 +37,25 @@ func main() {
 	dpClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
 
 	// Create Deployment
-	log.Println("Create Deployment")
-	if err := createDeployment(dpClient); err != nil {
+	// log.Println("Create Deployment")
+	// if err := createDeployment(dpClient); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// <-time.Tick(1 * time.Minute)
+
+	// Update Deployment
+	log.Println("Update Deployment")
+	if err := updateDeployment(dpClient); err != nil {
 		log.Fatal(err)
 	}
 	<-time.Tick(1 * time.Minute)
 
-	// Update Deployment
-	// log.Println("Update Deployment")
-	// if err := updateDeployment(dpClient); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// <-time.Tick(1 * time.Minute)
-
 	// Delete Deployment
-	// log.Println("Delete Deployment")
-	// if err := deleteDeployment(dpClient); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// <-time.Tick(1 * time.Minute)
+	log.Println("Delete Deployment")
+	if err := deleteDeployment(dpClient); err != nil {
+		log.Fatal(err)
+	}
+	<-time.Tick(1 * time.Minute)
 
 	log.Println("end")
 }
