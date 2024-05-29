@@ -2,6 +2,8 @@ apiVersion: apps.geray.cn/v1
 kind: Application
 metadata:
   name: application-sample
+  labels:
+    app: application-sample
 spec:
   # TODO(user): Add fields here
   replicas: 3
