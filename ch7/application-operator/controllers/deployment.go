@@ -24,14 +24,18 @@ func (r *ApplicationReconciler) reconcileDeployment(ctx context.Context, app *da
 	if err == nil {
 		log.Info("The Deployment has already exist.")
 		if reflect.DeepEqual(dp.Status, app.Status.Workflow) {
+			log.Info("Application status and Deployment status are the same. ")
 			return ctrl.Result{}, err
 		}
+
+		log.Info("Application status and Deployment status are the different. ")
 
 		app.Status.Workflow = dp.Status
 		if err := r.Status().Update(ctx, app); err != nil {
 			log.Error(err, "Failed to update Applicaion status")
 			return ctrl.Result{RequeueAfter: GenericRequeueDuration}, err
 		}
+
 		log.Info("The Application status has been updated.")
 		return ctrl.Result{}, nil
 	}

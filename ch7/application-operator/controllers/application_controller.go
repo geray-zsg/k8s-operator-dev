@@ -45,8 +45,6 @@ type ApplicationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:resources:path=applications,singular=application,scope=Namespaced,shortName=app
-
 //+kubebuilder:rbac:groups=apps.geray.cn,resources=applications,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=apps.geray.cn,resources=applications/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=apps.geray.cn,resources=applications/finalizers,verbs=update
@@ -111,11 +109,11 @@ func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dappsv1.Application{}, builder.WithPredicates(predicate.Funcs{
 			CreateFunc: func(event event.CreateEvent) bool {
-				return false
+				return true
 			},
 			DeleteFunc: func(event event.DeleteEvent) bool {
 				setupLog.Info("The Deployment has been deleted.", "name", event.Object.GetName())
-				return true
+				return false
 			},
 			UpdateFunc: func(event event.UpdateEvent) bool {
 				if event.ObjectNew.GetResourceVersion() == event.ObjectOld.GetResourceVersion() {
@@ -123,7 +121,8 @@ func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 				}
 				if reflect.DeepEqual(event.ObjectNew.(*appsv1.Deployment).Spec, event.ObjectOld.(*appsv1.Deployment).Spec) {
-					return false
+					// return false
+					return true
 				}
 				return true
 			},
