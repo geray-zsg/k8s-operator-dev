@@ -9,8 +9,8 @@ webhooks:
   - v1
   clientConfig:
     service:
-      name: webhook-service
-      namespace: system
+      name: application-operator-webhook-service
+      namespace: application-operator-system
       path: /mutate-apps-geray-cn-v1-application
   failurePolicy: Fail
   name: mapplication.kb.io
@@ -36,8 +36,8 @@ webhooks:
   - v1
   clientConfig:
     service:
-      name: webhook-service
-      namespace: system
+      name: application-operator-webhook-service
+      namespace: application-operator-system
       path: /validate-apps-geray-cn-v1-application
   failurePolicy: Fail
   name: vapplication.kb.io
