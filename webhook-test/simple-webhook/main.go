@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,7 +30,7 @@ func main() {
 	// Get command line parameters
 	flag.StringVar(&parameters.TLSKey, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.--tlsKeyFile")
 	flag.StringVar(&parameters.TLSCert, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS. --tlsCertFile.")
-	flag.StringVar(&labels, "labels", "kubesphere.io/vpc,other-label", "Comma-separated list of labels to check")
+	flag.StringVar(&labels, "labels", "nci.yunshan.net/vpc,kubesphere.io/workspace,kubesphere.io/namespace", "Comma-separated list of labels to check. --labels")
 
 	// 定义命令行参数
 	flag.BoolVar(&configEnable.NamespaceLabelsHandleValidate, "enable-namespace-validation", true, "Enable namespace validation.--enable-namespace-validation")
@@ -39,8 +40,9 @@ func main() {
 
 	// Split the labels into a slice
 	parameters.LabelsToCheck = strings.Split(labels, ",")
+	fmt.Println("parameters.LabelsToCheck:", parameters.LabelsToCheck)
+	fmt.Println("configEnable.NamespaceLabelsHandleValidate:", configEnable.NamespaceLabelsHandleValidate)
 	if configEnable.PodEnvInjectedHandleMutate {
-
 		http.HandleFunc("/mutate", handlers.PodEnvInjectedHandleMutate)
 	}
 

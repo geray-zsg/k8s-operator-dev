@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: webhook
-        image: geray/simple-webhook:v1
+        # image: geray/simple-webhook:v1
+        image: repos.cloud.cmft/ruoyi/simple-webhook:v1
         volumeMounts:
         - name: webhook-certs
           mountPath: /etc/webhook/certs

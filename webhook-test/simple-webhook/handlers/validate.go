@@ -37,7 +37,7 @@ func NamespaceLabelsHandleValidate(labelsToCheck []string) http.HandlerFunc {
 				return
 			}
 
-			oldNamespace := corev1.Namespace{}
+			var oldNamespace corev1.Namespace
 			if err := json.Unmarshal(admissionReview.Request.OldObject.Raw, &oldNamespace); err != nil {
 				http.Error(w, "could not unmarshal old namespace", http.StatusBadRequest)
 				return
@@ -46,54 +46,48 @@ func NamespaceLabelsHandleValidate(labelsToCheck []string) http.HandlerFunc {
 			fmt.Println("namespace:", namespace)
 			fmt.Println("oldNamespace:", oldNamespace)
 
-			// Check if oldNamespace.Labels is nil or specified labels are modified
-			if oldNamespace.Labels == nil {
-				admissionResponse.Allowed = true
-			} else {
-				for _, label := range labelsToCheck {
-					oldValue, oldExists := oldNamespace.Labels[label]
-					newValue, newExists := namespace.Labels[label]
-					fmt.Printf("oldValue中%v的值是： %v\n", label, oldValue)
-					fmt.Printf("newValue中%v的值是： %v\n", label, newValue)
+			admissionResponse.Allowed = true
 
-					// Check if label is modified
-					if oldExists && newExists && newValue != oldValue {
-						admissionResponse.Allowed = false
-						admissionResponse.Result = &metav1.Status{
-							Message: fmt.Sprintf("Modifying the %s label is not allowed", label),
-						}
-						break
-					}
+			for _, label := range labelsToCheck {
+				oldValue, oldExists := oldNamespace.Labels[label]
+				newValue, newExists := namespace.Labels[label]
 
-					// Check if label is added
-					if !oldExists && newExists {
-						admissionResponse.Allowed = true
-						fmt.Printf("The label %v is added, allow the creation\n", label)
-						break
-					}
+				fmt.Printf("Checking label: %s, oldValue: %s, oldExists: %t, newValue: %s, newExists: %t\n", label, oldValue, oldExists, newValue, newExists)
 
-					// Check if label is not modified
-					if oldExists && newExists && newValue == oldValue {
-						admissionResponse.Allowed = true
-						fmt.Printf("The label %v is not modified, allow the creation\n", label)
-						break
+				if oldExists && newExists && newValue != oldValue {
+					admissionResponse.Allowed = false
+					fmt.Printf("Modifying label: %s, oldValue: %s, newValue: %s \n", label, oldValue, newValue)
+					admissionResponse.Result = &metav1.Status{
+						Message: fmt.Sprintf("Modifying the %s label is not allowed", label),
 					}
-
-					// Check if label is deleted
-					if oldExists && !newExists {
-						admissionResponse.Allowed = false
-						admissionResponse.Result = &metav1.Status{
-							Message: fmt.Sprintf("Deleting the %s label is not allowed", label),
-						}
-						break
-					}
+					break
 				}
+
+				if !oldExists && newExists {
+					admissionResponse.Allowed = true
+					fmt.Printf("Adding the label %v is denied\n", label)
+					admissionResponse.Result = &metav1.Status{
+						Message: fmt.Sprintf("Adding the %s label is not allowed", label),
+					}
+					break
+				}
+
+				if oldExists && !newExists {
+					admissionResponse.Allowed = false
+					fmt.Printf("Deleting label: %s, oldValue: %s\n", label, oldValue)
+					admissionResponse.Result = &metav1.Status{
+						Message: fmt.Sprintf("Deleting the %s label is not allowed", label),
+					}
+					break
+				}
+
+				fmt.Printf("Label check passed for label: %s, oldValue: %s, newValue: %s \n", label, oldValue, newValue)
 			}
 		} else {
+			fmt.Printf("Not a Namespace, allowing the request\n")
 			admissionResponse.Allowed = true
 		}
 
-		// Ensure a default message is set if the request is denied without a specific message
 		if !admissionResponse.Allowed && admissionResponse.Result == nil {
 			admissionResponse.Result = &metav1.Status{
 				Message: "Request denied",
