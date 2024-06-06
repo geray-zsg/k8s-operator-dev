@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-webhook
+  labels:
+    app: simple-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-webhook
+  template:
+    metadata:
+      labels:
+        app: simple-webhook
+    spec:
+      containers:
+      - name: webhook
+        image: geray/simple-webhook:latest
+        volumeMounts:
+        - name: webhook-certs
+          mountPath: /etc/webhook/certs
+          readOnly: true
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: webhook-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-service
+spec:
+  ports:
+  - port: 443
+    targetPort: 8443
+  selector:
+    app: simple-webhook
