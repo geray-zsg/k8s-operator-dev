@@ -6,3 +6,9 @@ type WHParameters struct {
 	TLSKey        string
 	TLSCert       string
 }
+
+// Enable or disable specific features as needed
+type ConfigEnabel struct {
+	PodEnvInjectedHandleMutate    bool
+	NamespaceLabelsHandleValidate bool
+}
