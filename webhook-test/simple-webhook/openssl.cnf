@@ -14,7 +14,8 @@ localityName_default        = San Francisco
 organizationName            = Organization Name (eg, company)
 organizationName_default    = My Company
 commonName                  = Common Name (e.g. server FQDN or YOUR name)
-commonName_default          = webhook.default.svc
+commonName_kube-system      = simple-webhook.kube-system.svc
+#commonName_default          = simple-webhook.default.svc
 
 [ req_ext ]
 subjectAltName = @alt_names
@@ -24,4 +25,5 @@ subjectAltName = @alt_names
 
 [ alt_names ]
 IP.1   = 192.168.193.11 # 替换为你的本地 IP
-DNS.1  = webhook.default.svc
+DNS.1  = simple-webhook.kube-system.svc
+#DNS.2  = simple-webhook.default.svc

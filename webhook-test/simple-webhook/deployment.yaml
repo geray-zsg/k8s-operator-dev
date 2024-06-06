@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: simple-webhook
+  namespace: kube-system
   labels:
     app: simple-webhook
 spec:
@@ -16,7 +17,7 @@ spec:
     spec:
       containers:
       - name: webhook
-        image: geray/simple-webhook:latest
+        image: geray/simple-webhook:v1
         volumeMounts:
         - name: webhook-certs
           mountPath: /etc/webhook/certs
@@ -29,8 +30,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: webhook-service
+  name: simple-webhook
+  namespace: kube-system
+  labels:
+    app: simple-webhook
 spec:
+  selector:
+    app: simple-webhook
   ports:
   - port: 443
     targetPort: 8443

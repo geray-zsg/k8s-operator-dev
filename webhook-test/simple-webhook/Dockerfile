@@ -1,5 +1,7 @@
-FROM golang:1.20 as builder
+FROM golang:1.22 as builder
 
+ENV GOPROXY=https://goproxy.io
+# ENV GOPROXY=https://goproxy.cn
 WORKDIR /app
 COPY . .
 
