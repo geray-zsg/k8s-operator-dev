@@ -19,6 +19,21 @@ spec:
       - name: webhook
         # image: geray/simple-webhook:v1
         image: repos.cloud.cmft/ruoyi/simple-webhook:v1
+        args:
+          - '--enable-namespace-validation=true'
+          - >-
+            --labels=nci.yunshan.net/vpc,kubesphere.io/workspace,kubesphere.io/namespace,ts/aaa
+        ports:
+          - name: http-8443
+            containerPort: 8443
+            protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 100Mi
         volumeMounts:
         - name: webhook-certs
           mountPath: /etc/webhook/certs

@@ -5,6 +5,7 @@ type WHParameters struct {
 	LabelsToCheck []string
 	TLSKey        string
 	TLSCert       string
+	TLSPort       string
 }
 
 // Enable or disable specific features as needed

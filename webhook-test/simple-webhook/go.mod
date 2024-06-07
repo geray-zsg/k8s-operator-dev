@@ -3,6 +3,7 @@ module simple-webhook
 go 1.22.3
 
 require (
+	github.com/golang/glog v1.2.1
 	k8s.io/api v0.30.1
 	k8s.io/apimachinery v0.30.1
 )
