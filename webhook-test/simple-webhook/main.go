@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"simple-webhook/handlers"
+	"simple-webhook/registerhandlers"
 	"simple-webhook/types"
 	"strings"
 	"syscall"
@@ -24,6 +24,7 @@ func main() {
 	flag.StringVar(&parameters.TLSCert, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS. --tlsCertFile.")
 	flag.StringVar(&labels, "labels", "nci.yunshan.net/vpc,kubesphere.io/workspace,kubesphere.io/namespace", "Comma-separated list of labels to check. --labels")
 	flag.StringVar(&parameters.TLSPort, "tlsPort", ":8443", "Webhook Server staring tls port.--tlsPort")
+	flag.StringVar(&parameters.HealthPort, "healthPort", ":8080", "Webhook Server staring tls port.--healthPort")
 
 	// 定义命令行参数
 	flag.BoolVar(&configEnable.NamespaceLabelsHandleValidate, "enable-namespace-validation", true, "Enable namespace validation.--enable-namespace-validation")
@@ -47,7 +48,7 @@ func main() {
 	glog.Infof("Namespace validation enabled: %v", configEnable.NamespaceLabelsHandleValidate)
 
 	// Register webhook handlers
-	registerHandlers(configEnable, parameters.LabelsToCheck)
+	registerhandlers.RegisterHandlers(configEnable, parameters.LabelsToCheck)
 
 	// Load the certificate and key files
 	cert, err := tls.LoadX509KeyPair(parameters.TLSCert, parameters.TLSKey)
@@ -70,6 +71,9 @@ func main() {
 		}
 	}()
 
+	// Start health and readiness checks
+	go registerhandlers.StartHealthCheckServer(parameters.HealthPort)
+
 	// Listen for OS shutdown signal
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -78,15 +82,4 @@ func main() {
 	glog.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
 	glog.Fatalf("Server shutdown failed: %v", err)
 
-}
-
-func registerHandlers(configEnable types.ConfigEnabel, labels []string) {
-	if configEnable.PodEnvInjectedHandleMutate {
-		http.HandleFunc("/mutate", handlers.PodEnvInjectedHandleMutate)
-	}
-	if configEnable.NamespaceLabelsHandleValidate {
-		http.HandleFunc("/validate", handlers.NamespaceLabelsHandleValidate(labels))
-	} else {
-		http.HandleFunc("/validate", handlers.AllowedHandlers())
-	}
 }

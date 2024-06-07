@@ -6,6 +6,7 @@ type WHParameters struct {
 	TLSKey        string
 	TLSCert       string
 	TLSPort       string
+	HealthPort    string
 }
 
 // Enable or disable specific features as needed
