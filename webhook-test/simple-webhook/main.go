@@ -17,6 +17,7 @@ import (
 func main() {
 	var parameters types.WHParameters
 	var configEnable types.ConfigEnabel
+	var configHandlersParameters types.ConfigHandlersParameters
 	var labels string
 
 	// Get command line parameters
@@ -43,12 +44,12 @@ func main() {
 	}
 
 	// Split the labels into a slice
-	parameters.LabelsToCheck = strings.Split(labels, ",")
-	glog.Infof("Labels to check: %v", parameters.LabelsToCheck)
+	configHandlersParameters.LabelsToCheck = strings.Split(labels, ",")
+	glog.Infof("Labels to check: %v", configHandlersParameters.LabelsToCheck)
 	glog.Infof("Namespace validation enabled: %v", configEnable.NamespaceLabelsHandleValidate)
 
 	// Register webhook handlers
-	registerhandlers.RegisterHandlers(configEnable, parameters.LabelsToCheck)
+	registerhandlers.RegisterHandlers(configEnable, configHandlersParameters)
 
 	// Load the certificate and key files
 	cert, err := tls.LoadX509KeyPair(parameters.TLSCert, parameters.TLSKey)
