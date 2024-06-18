@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubesphere-router-netshoot
+  namespace: default
+  labels:
+    app: netshoot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netshoot
+  template:
+    metadata:
+      labels:
+        app: netshoot
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - sleep 36h
+        image: repos.cloud.cmft/kubesphere/netshoot:v1.0
+        name: test
+        resources:
+          limits:
+            cpu: 300m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 10Mi
+        volumeMounts:
+        - mountPath: /tmp/test
+          name: test
+      volumes:
+      - emptyDir: {}
+        name: test

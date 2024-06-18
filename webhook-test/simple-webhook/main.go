@@ -20,16 +20,20 @@ func main() {
 	var configHandlersParameters types.ConfigHandlersParameters
 	var labels string
 
-	// Get command line parameters
-	flag.StringVar(&parameters.TLSKey, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.--tlsKeyFile")
-	flag.StringVar(&parameters.TLSCert, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS. --tlsCertFile.")
+	// // Get command line parameters
+	// flag.StringVar(&parameters.TLSKey, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.--tlsKeyFile")
+	// flag.StringVar(&parameters.TLSCert, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS. --tlsCertFile.")
+	flag.StringVar(&parameters.TLSKey, "tlsKeyFile", "./certs/tls.key", "File containing the x509 private key to --tlsCertFile.--tlsKeyFile")
+	flag.StringVar(&parameters.TLSCert, "tlsCertFile", "./certs/tls.crt", "File containing the x509 Certificate for HTTPS. --tlsCertFile.")
 	flag.StringVar(&labels, "labels", "nci.yunshan.net/vpc,kubesphere.io/workspace,kubesphere.io/namespace", "Comma-separated list of labels to check. --labels")
+	flag.StringVar(&configHandlersParameters.DeploymentPrefix, "deploymentPrefix", "kubesphere-router", "Check Deployment prefix ,  --deploymentPrefix")
 	flag.StringVar(&parameters.TLSPort, "tlsPort", ":8443", "Webhook Server staring tls port.--tlsPort")
 	flag.StringVar(&parameters.HealthPort, "healthPort", ":8080", "Webhook Server staring tls port.--healthPort")
 
-	// 定义命令行参数
-	flag.BoolVar(&configEnable.NamespaceLabelsHandleValidate, "enable-namespace-validation", true, "Enable namespace validation.--enable-namespace-validation")
-	flag.BoolVar(&configEnable.PodEnvInjectedHandleMutate, "enable-podEnv-Injecte", false, "Enable pod env Injecte. --enable-podEnv-Injecte")
+	// 定义命令行参数:是否开启相关检查
+	flag.BoolVar(&configEnable.MutatePodEnvInjectedHandle, "mutate-podEnv-Injecte-enable", false, "Enable pod env Injecte. --mutate-podEnv-Injecte-enable")
+	flag.BoolVar(&configEnable.ValidateNamespaceLabelsHandle, "validation-namespace-enable", true, "Enable namespace validation.--validation-namespace-enable")
+	flag.BoolVar(&configEnable.ValidateCheckDeploymentPrefix, "validation-deployment--enable", true, "Enable namespace validation.--validation-deployment--enable")
 
 	// Add glog flags
 	flag.Set("logtostderr", "true")
@@ -46,7 +50,7 @@ func main() {
 	// Split the labels into a slice
 	configHandlersParameters.LabelsToCheck = strings.Split(labels, ",")
 	glog.Infof("Labels to check: %v", configHandlersParameters.LabelsToCheck)
-	glog.Infof("Namespace validation enabled: %v", configEnable.NamespaceLabelsHandleValidate)
+	glog.Infof("Namespace validation enabled: %v", configEnable.ValidateCheckDeploymentPrefix)
 
 	// Register webhook handlers
 	registerhandlers.RegisterHandlers(configEnable, configHandlersParameters)
@@ -80,7 +84,7 @@ func main() {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	<-signalChan
 
-	glog.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
+	glog.Infof("Get OS shutdown signal, shutting down webhook server gracefully...")
 	glog.Fatalf("Server shutdown failed: %v", err)
 
 }

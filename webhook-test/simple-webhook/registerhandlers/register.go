@@ -8,10 +8,10 @@ import (
 
 // func RegisterHandlers(configEnable types.ConfigEnabel, labels []string) {
 func RegisterHandlers(configEnable types.ConfigEnabel, configHandlersParameters types.ConfigHandlersParameters) {
-	if configEnable.PodEnvInjectedHandleMutate {
+	if configEnable.MutatePodEnvInjectedHandle {
 		http.HandleFunc("/mutate", handlers.PodEnvInjectedHandleMutate)
 	}
-	if configEnable.NamespaceLabelsHandleValidate {
+	if configEnable.ValidateNamespaceLabelsHandle {
 		// glog.Info("configHandlersParameters.LabelsToCheck:", labels)
 		// glog.Info("configHandlersParameters.LabelsToCheck:", configHandlersParameters.LabelsToCheck)
 		http.HandleFunc("/validate", handlers.NamespaceLabelsHandleValidate(configHandlersParameters.LabelsToCheck))
@@ -19,7 +19,10 @@ func RegisterHandlers(configEnable types.ConfigEnabel, configHandlersParameters 
 	} else {
 		http.HandleFunc("/validate", handlers.AllowedHandlers())
 	}
-	if configEnable.CheckDeploymentPrefix {
+
+	if configEnable.ValidateCheckDeploymentPrefix {
 		http.HandleFunc("/validateDeploy", handlers.CheckDeployPrefixHandleValidate(configHandlersParameters.DeploymentPrefix))
+	} else {
+		http.HandleFunc("/validateDeploy", handlers.AllowedHandlers())
 	}
 }

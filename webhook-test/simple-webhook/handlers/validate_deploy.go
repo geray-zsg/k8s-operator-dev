@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/golang/glog"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // If the prefix of deployment is kubesphere-router-,it is not allowed to pass through.
@@ -20,7 +23,7 @@ func CheckDeployPrefixHandleValidate(deployPrefix string) http.HandlerFunc {
 			glog.Errorf("Error reading request body: %v", err)
 			return
 		}
-
+		glog.Infof("Request body: %s", string(body))
 		if err := json.Unmarshal(body, &admissionReview); err != nil {
 			http.Error(w, "could not unmarshal request", http.StatusBadRequest)
 			glog.Errorf("Error unmarshalling request body: %v", err)
@@ -28,22 +31,38 @@ func CheckDeployPrefixHandleValidate(deployPrefix string) http.HandlerFunc {
 		}
 		admissionResponse := admissionv1.AdmissionResponse{
 			UID: admissionReview.Request.UID,
-			// Allowed: true,
 		}
 
 		// 填写代码
+		glog.Info("下面是检查deployment的逻辑代码")
+		// if admissionReview.Request.Kind.Kind == "Deployment" && admissionReview.Request.Operation == admissionv1.Delete {
 		if admissionReview.Request.Kind.Kind == "Deployment" {
 			var deploy appsv1.Deployment
-			if json.Unmarshal(admissionReview.Request.Object.Raw, &deploy); err != nil {
+			if err := json.Unmarshal(admissionReview.Request.OldObject.Raw, &deploy); err != nil {
 				http.Error(w, "could not unmarshal deployment", http.StatusBadRequest)
+				glog.Errorf("Error unmarshalling deployment: %v", err)
+				return
 			}
 
-			glog.Info("deployment:", deploy)
+			// glog.Infof("deployment: %s", deploy)
+			glog.Infof("Deployment.Name===========================================》: %s", deploy)
 
+			if strings.HasPrefix(deploy.Name, deployPrefix) {
+				admissionResponse.Allowed = true
+				glog.Infof("Deployment %s cannot be deleted because its prefix is %s on %s.", deploy.Name, deployPrefix, &deploy.Namespace)
+				admissionResponse.Result = &metav1.Status{
+					Message: fmt.Sprintf("Deployment %s cannot be deleted because its prefix is %s.", deploy.Name, deployPrefix),
+				}
+			} else {
+				glog.Infof("Deployment %s can be deleted.", deploy.Name)
+				admissionResponse.Allowed = true
+			}
+
+		} else {
 			admissionResponse.Allowed = true
-			glog.Info("Deployment.Name:", deploy.Name)
-
 		}
+
+		glog.Infof("END~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 		admissionReview.Response = &admissionResponse
 		respBytes, err := json.Marshal(admissionReview)
@@ -57,3 +76,16 @@ func CheckDeployPrefixHandleValidate(deployPrefix string) http.HandlerFunc {
 		w.Write(respBytes)
 	}
 }
+
+// func (c *types.Client) getKSGateway(gatewayName string) bool {
+// 	// set request GC
+// 	gvr := schema.GroupVersionResource{
+// 		Group:    "gateway.kubesphere.io",
+// 		Version:  "v1alpha1",
+// 		Resource: "gateways",
+// 	}
+
+// 	c.dynamicClient.Resource(gvr).Get()
+
+// 	return true
+// }
